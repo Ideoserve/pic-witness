@@ -38,3 +38,9 @@ Switch to a different terminal and start an Ethereum development blockchain usin
 ```
 ganache-cli
 ```
+
+Start the application in development mode and serve the frontend at http://localhost:3000
+
+```
+npm run start
+```
