@@ -1,13 +1,15 @@
 pragma solidity ^0.4.24;
 
 contract FileWitness {
-    string ipfsHash;
- 
-    function sendHash(string x) public {
-        ipfsHash = x;
-    }
+    mapping (address => string) ipfsHashes;
+    mapping (address => uint) timestamp;
 
-    function getHash() public view returns (string x) {
-        return ipfsHash;
+    function setHash(string ipfsHash) public {
+        ipfsHashes[msg.sender] = ipfsHash;
+        timestamp[msg.sender] = now;
+    }
+ 
+    function getHash(address account) public view returns(string, uint) {
+        return (ipfsHashes[account], timestamp[account]);
     }
 }

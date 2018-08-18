@@ -1,7 +1,10 @@
 import React, { Component } from 'react'
+import { setJSON, getJSON } from './utils/IPFS.js'
+import { Col, Form, Button, FormControl } from 'react-bootstrap';
+import Loader from "./Loader"
+import { setContractHash, getContractHash } from './services/FileWitnessService';
 import FileWitnessContract from '../build/contracts/FileWitness.json'
-import getWeb3 from './utils/getWeb3'
-import ipfs from './IPFS';
+import getWeb3 from './utils/getWeb3.js';
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -11,206 +14,111 @@ import './App.css'
 class App extends Component {
   constructor(props) {
     super(props)
-
     this.state = {
-      ipfsHash:null,
-      buffer:'',
-      ethAddress:'',
-      blockNumber:'',
-      transactionHash:'',
-      gasUsed:'',
-      txReceipt: '',
-      web3: null
+        myData: "",
+        ipfsData: "",
+        timestamp: "",
+        loading: false,
+        address: "",
+        web3: null
     }
-  }
+}
 
-  componentWillMount() {
-    // Get network provider and web3 instance.
-    // See utils/getWeb3 for more info.
-
-    getWeb3
-    .then(results => {
+componentDidMount = async () => {
+  getWeb3.then(results => {
+    /*After getting web3, we save the informations of the web3 user by
+    editing the state variables of the component */
+    results.web3.eth.getAccounts( (error,acc) => {
+      //this.setState is used to edit the state variables
       this.setState({
+        address: acc[0],
         web3: results.web3
       })
-
-      // Instantiate contract once web3 provided.
+      console.log('Web3 initalized.')
       this.instantiateContract()
+    });
+  }).catch( () => {
+    //If no web3 provider was found, log it in the console
+    console.log('Error finding web3.')
+  })
+}
+
+instantiateContract() {
+  const contract = require('truffle-contract')
+  const fileWitness = contract(FileWitnessContract)
+  fileWitness.setProvider(this.state.web3.currentProvider)
+
+  // Declaring this for later so we can chain functions on SimpleStorage.
+  var fileWitnessInstance
+
+  // Get accounts.
+  this.state.web3.eth.getAccounts((error, accounts) => {
+    fileWitness.deployed().then((instance) => {
+      fileWitnessInstance = instance
+      this.fetchData()
     })
-    .catch(() => {
-      console.log('Error finding web3.')
-    })
-  }
+  })
+}
 
-  instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
+handleSubmit = async (e) => {
+    e.preventDefault();
+    this.setState({ loading: true });
+    const hash = await setJSON({ myData: this.state.myData });
+    try {
+        await setContractHash(this.state.web3, hash);
+    } catch (error) {
+        this.setState({ loading: false });
+        alert("There was an error with the transaction.");
+        return;
+    }
+    this.fetchData();
+}
+fetchData = async () => {
+    //first get hash from smart contract
+    console.log('State Web3: ' + this.state.web3)
+    const contractDetails = await getContractHash(this.state.web3);
+    //then get data off IPFS
+    const ipfsHash = contractDetails[0];
+    if (!ipfsHash) { return }
+    const timestamp = contractDetails[1].c[0];
+    const details = await getJSON(ipfsHash);
+    this.setState({ ipfsData: details, loading: false, timestamp })
+}
+handleMyData = (e) => {
+    this.setState({ myData: e.target.value });
+}
 
-    const contract = require('truffle-contract')
-    //const simpleStorage = contract(SimpleStorageContract)
-    //simpleStorage.setProvider(this.state.web3.currentProvider)
-
-    const fileWitness = contract(FileWitnessContract)
-    fileWitness.setProvider(this.state.web3.currentProvider)
-
-    var fileWitnessInstance
-
-    this.state.web3.eth.getAccounts((error, accounts) => {
-      fileWitness.deployed().then((instance) => {
-        fileWitnessInstance = instance
-      })
-    })
-
-    // Declaring this for later so we can chain functions on SimpleStorage.
-    //var simpleStorageInstance
-
-    // Get accounts.
-    /*
-    this.state.web3.eth.getAccounts((error, accounts) => {
-      simpleStorage.deployed().then((instance) => {
-        simpleStorageInstance = instance
-
-        // Stores a given value, 5 by default.
-        return simpleStorageInstance.set(5, {from: accounts[0]})
-      }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return simpleStorageInstance.get.call(accounts[0])
-      }).then((result) => {
-        // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })
-    })
-    */
-  }
-
-  captureFile =(event) => {
-    event.stopPropagation()
-    event.preventDefault()
-    const file = event.target.files[0]
-    let reader = new window.FileReader()
-    reader.readAsArrayBuffer(file)
-    reader.onloadend = () => this.convertToBuffer(reader)    
-  };
-
-  convertToBuffer = async(reader) => {
-    //file is converted to a buffer for upload to IPFS
-      const buffer = await Buffer.from(reader.result);
-    //set this buffer -using es6 syntax
-      this.setState({buffer});
-  };
-
-  onClick = async () => {
-    try{
-            this.setState({blockNumber:"waiting.."});
-            this.setState({gasUsed:"waiting..."});
-    //get Transaction Receipt in console on click
-    //See: https://web3js.readthedocs.io/en/1.0/web3-eth.html#gettransactionreceipt
-    await this.state.web3.eth.getTransactionReceipt(this.state.transactionHash, (err, txReceipt)=>{
-              console.log(err,txReceipt);
-              this.setState({txReceipt});
-            }); //await for getTransactionReceipt
-    await this.setState({blockNumber: this.state.txReceipt.blockNumber});
-            await this.setState({gasUsed: this.state.txReceipt.gasUsed});    
-          } //try
-        catch(error){
-            console.log(error);
-          } //catch
-  }
-
-  onSubmit = async (event) => {
-    event.preventDefault();
-
-    this.state.web3.eth.getAccounts((error, accounts) => {
-      fileWitness.deployed().then((instance) => {
-        fileWitnessInstance = instance
-
-        console.log('Sending from Metamask account: ' + accounts[0]);
-        //obtain contract address from storehash.js
-        const ethAddress= await fileWitnessInstance.options.address;
-        this.setState({ethAddress});
-        //save document to IPFS,return its hash#, and set hash# to state
-        //https://github.com/ipfs/interface-ipfs-core/blob/master/SPEC/FILES.md#add 
-        await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-          console.log(err,ipfsHash);
-          //setState by setting ipfsHash to ipfsHash[0].hash 
-          this.setState({ ipfsHash:ipfsHash[0].hash });
-          // call Ethereum contract method "sendHash" and .send IPFS hash to etheruem contract 
-          //return the transaction hash from the ethereum contract
-          //see, this https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#methods-mymethod-send
-          
-          fileWitnessInstance.methods.sendHash(this.state.ipfsHash).send({
-            from: accounts[0] 
-          }, (error, transactionHash) => {
-            console.log(transactionHash);
-            this.setState({transactionHash});
-          });
-        })
-      })
-    })
-  };
-
-  render() {
+render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <h1> Ethereum and IPFS with Create React App</h1>
-        </header>
-        
-        <hr />
-<Grid>
-        <h3> Choose file to send to IPFS </h3>
-        <Form onSubmit={this.onSubmit}>
-          <input 
-            type = "file"
-            onChange = {this.captureFile}
-          />
-           <Button 
-           bsStyle="primary" 
-           type="submit"> 
-           Send it 
-           </Button>
-        </Form>
-<hr/>
-<Button onClick = {this.onClick}> Get Transaction Receipt </Button>
-<Table bordered responsive>
-              <thead>
-                <tr>
-                  <th>Tx Receipt Category</th>
-                  <th>Values</th>
-                </tr>
-              </thead>
-             
-              <tbody>
-                <tr>
-                  <td>IPFS Hash # stored on Eth Contract</td>
-                  <td>{this.state.ipfsHash}</td>
-                </tr>
-                <tr>
-                  <td>Ethereum Contract Address</td>
-                  <td>{this.state.ethAddress}</td>
-                </tr>
-                <tr>
-                  <td>Tx Hash # </td>
-                  <td>{this.state.transactionHash}</td>
-                </tr>
-                <tr>
-                  <td>Block Number # </td>
-                  <td>{this.state.blockNumber}</td>
-                </tr>
-                <tr>
-                  <td>Gas Used</td>
-                  <td>{this.state.gasUsed}</td>
-                </tr>
-              
-              </tbody>
-          </Table>
-      </Grid>
-   </div>
-    );
+        <div>
+            <Col sm={5} >
+                {this.state.timestamp ?
+                    <p>Data loaded from Ethereum / IPFS: <br />Time saved to block: {new Date(Number(this.state.timestamp + "000")).toUTCString()}</p>
+                    :
+                    <div><h4>No record found for this account.</h4><p>Please enter and submit data on the right</p></div>
+                }
+                <div className="blockchain-display">
+                    {this.state.ipfsData.myData}
+                </div>
+
+            </Col>
+            <Col sm={4} smOffset={2}>
+                <Form horizontal onSubmit={this.handleSubmit}>
+                    <h4>Enter Details:</h4>
+                    <p>My super tamper proof data:</p>
+
+                    <FormControl componentClass="textarea" type="text" rows="3" placeholder="enter data"
+                        value={this.state.myData}
+                        onChange={this.handleMyData} />
+                    <br />
+                    <Button type="submit">Update Details</Button>
+                </Form>
+            </Col>
+            {this.state.loading &&
+                <Loader />
+            }
+        </div>
+    )
   }
 }
 
