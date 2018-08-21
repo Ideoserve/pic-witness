@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import FileWitnessContract from '../build/contracts/FileWitness.json'
 import getWeb3 from './utils/getWeb3'
+import ipfs from './utils/IPFS.js'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -13,9 +14,14 @@ class App extends Component {
 
     this.state = {
       web3: null,
+      fileWitnessInstance: null,
+      account: null,
       fileHash: '',
-      fileTimestamp: 0
+      fileTimestamp: 0,
+      buffer: null
     }
+    this.captureFile = this.captureFile.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
   }
 
   componentWillMount() {
@@ -41,34 +47,79 @@ class App extends Component {
     const fileWitness = contract(FileWitnessContract)
     fileWitness.setProvider(this.state.web3.currentProvider)
 
-    var fileWitnessInstance
-
     this.state.web3.eth.getAccounts((error, accounts) => {
       fileWitness.deployed().then((instance) => {
-        fileWitnessInstance = instance
-        return fileWitnessInstance.setFileHash('test', {from: accounts[0]})
+        this.setState({ fileWitnessInstance: instance })
+        console.log('Contract deployed to ' + this.state.fileWitnessInstance.address)
+        this.setState({ account: accounts[0] })
+        console.log('Using account ' + this.state.account)
       }).then((result) => {
-        return fileWitnessInstance.getFileHash.call(accounts[0])
+        return this.state.fileWitnessInstance.getFileHash.call(accounts[0])
       }).then((result) => {
-        return this.setState({ fileHash: result[0], fileTimestamp: result[1] })
+        return this.setState({ fileHash: result })
       })
     })
   }
+
+  captureFile(event) {
+    event.preventDefault()
+    const file = event.target.files[0]
+    const reader = new window.FileReader()
+    reader.readAsArrayBuffer(file)
+    reader.onloadend = () => {
+      this.setState({ buffer: Buffer(reader.result) })
+      console.log('buffer', this.state.buffer)
+    }
+  }
+
+  onSubmit(event) {
+    event.preventDefault()
+    console.log('Submitting...')
+
+    // TODO Figure out a way to eliminate these extra variables (can't access this.state from within file add)
+    const buffer = this.state.buffer
+    const instance = this.state.fileWitnessInstance
+    const account = this.state.account
+    const hash = ''
+
+    ipfs.files.add(buffer, function (error, files) {
+      if(error) {
+        console.log(error)
+        return
+      }
+
+      const hash = files[0].hash
+
+      console.log('File sent to IPFS. Hash: ' + hash)
+      
+      instance.setFileHash(hash, { from: account }).then((r) => {
+        console.log('ifpsHash', hash)
+      })
+    })
+
+    this.setState({ fileHash: hash })
+  }
+
 
   render() {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
+            <a href="#" className="pure-menu-heading pure-menu-link">File Witness</a>
         </nav>
 
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <h1>Good to Go!</h1>
-              <hr/>
               <p>Stored file hash: {this.state.fileHash}</p>
-              <p>Stored file timestamp: {this.state.fileTimestamp}</p>
+              <h1>Your Image</h1>
+              <p>This image is stored on IPFS & The Ethereum Blockchain!</p>
+              <img src={`https://ipfs.io/ipfs/${this.state.fileHash}`} alt=""/>
+              <h2>Upload Image</h2>
+              <form onSubmit={this.onSubmit} >
+                <input type='file' onChange={this.captureFile} />
+                <input type='submit' />
+              </form>
             </div>
           </div>
         </main>
