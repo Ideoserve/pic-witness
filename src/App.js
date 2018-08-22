@@ -130,6 +130,8 @@ class App extends Component {
   }
 
   render() {
+    const { buffer } = this.state;
+    const isSubmitEnabled = buffer !== null
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
@@ -139,12 +141,29 @@ class App extends Component {
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <h2>Upload Image</h2>
-              <form onSubmit={this.onSubmit} >
-                <input type='file' onChange={this.captureFile} />
-                <input type='submit' />
-              </form>
-              <h2>Your files: {this.state.fileCount}</h2>
+              <div className="pure-g">
+                <div className="pure-u-1 pure-u-md-1-3">
+                  <h2>Add a Picture</h2>
+                  <form onSubmit={this.onSubmit} >
+                    <input type='file' onChange={this.captureFile} />
+                    <button type='submit' className="pure-button pure-button-primary"
+                      disabled={!isSubmitEnabled}>
+                      Go!
+                    </button>
+                  </form>
+                </div>
+                <div className="pure-u-1 pure-u-md-2-3">
+                <h2>How this works</h2>
+                  <p>Choose a picture to upload. Your picture will be timstampped
+                    and submitted to a peer-to-peer filesharing network called InterPlanetary 
+                    File System (IPFS). After your file is stored using IPFS, a file hash 
+                    provided by IPFS will be added to the Ethereum blockchain. This blockchain 
+                    transaction provides cryptographically-guaranteed proof that you added
+                    the picture at a certain date/time.
+                  </p>
+                </div>
+              </div>
+              <h2>Your pictures: {this.state.fileCount}</h2>
               <div className="pure-g">
                 {this.state.files.map((file, index) => (
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
