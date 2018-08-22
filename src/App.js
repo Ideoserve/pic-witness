@@ -6,6 +6,7 @@ import ipfs from './utils/IPFS.js'
 import './css/oswald.css'
 import './css/open-sans.css'
 import './css/pure-min.css'
+import './css/grids-responsive-min.css'
 import './App.css'
 
 class App extends Component {
@@ -144,12 +145,15 @@ class App extends Component {
                 <input type='submit' />
               </form>
               <h2>Your files: {this.state.fileCount}</h2>
-              {this.state.files.map((file, index) => (
-                <div key={index}>
-                  <p>{file.hash}</p>
-                  <img src={`https://ipfs.io/ipfs/${file.hash}`} alt=""/>
-                </div>
-              ))}
+              <div className="pure-g">
+                {this.state.files.map((file, index) => (
+                  <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
+                    <div className="pure-grid-unit-p1">
+                      <img src={`https://ipfs.io/ipfs/${file.hash}`} alt="" className="pure-img"/>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </main>

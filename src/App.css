@@ -66,3 +66,9 @@ code {
   height: 16px;
   margin-right: 10px;
 }
+
+/* GRID */
+
+.pure-grid-unit-p1 {
+  padding: 1em;
+}
