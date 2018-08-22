@@ -16,8 +16,8 @@ class App extends Component {
       web3: null,
       fileWitnessInstance: null,
       account: null,
-      fileHash: '',
-      fileTimestamp: 0,
+      fileCount: 0,
+      files: null,
       buffer: null
     }
     this.captureFile = this.captureFile.bind(this);
@@ -54,9 +54,9 @@ class App extends Component {
         this.setState({ account: accounts[0] })
         console.log('Using account ' + this.state.account)
       }).then((result) => {
-        return this.state.fileWitnessInstance.getFileHash.call(accounts[0])
+        return this.state.fileWitnessInstance.userFileCount.call()
       }).then((result) => {
-        return this.setState({ fileHash: result })
+        return this.setState({ fileCount: parseInt(result, 10) })
       })
     })
   }
@@ -92,14 +92,17 @@ class App extends Component {
 
       console.log('File sent to IPFS. Hash: ' + hash)
       
-      instance.setFileHash(hash, { from: account }).then((r) => {
+      instance.addFile(hash, { from: account }).then((r) => {
         console.log('ifpsHash', hash)
       })
     })
 
     this.setState({ fileHash: hash })
+    
+    instance.userFileCount.call().then((result) => {
+      this.setState({ fileCount: parseInt(result, 10) })
+    })
   }
-
 
   render() {
     return (
@@ -111,10 +114,7 @@ class App extends Component {
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <p>Stored file hash: {this.state.fileHash}</p>
-              <h1>Your Image</h1>
-              <p>This image is stored on IPFS & The Ethereum Blockchain!</p>
-              <img src={`https://ipfs.io/ipfs/${this.state.fileHash}`} alt=""/>
+              <p>Your files: {this.state.fileCount}</p>
               <h2>Upload Image</h2>
               <form onSubmit={this.onSubmit} >
                 <input type='file' onChange={this.captureFile} />

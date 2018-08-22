@@ -1,18 +1,25 @@
 pragma solidity ^0.4.24;
 
 contract FileWitness {
-    mapping (address => string) ipfsHashes;
 
-    event FileHashSet(
-        string _message
-    );
-
-    function setFileHash(string ipfsHash) public {
-        ipfsHashes[msg.sender] = ipfsHash;
-        emit FileHashSet("Data stored successfully!");
+    struct User {
+        string[] files;
     }
- 
-    function getFileHash(address account) public view returns(string) {
-        return (ipfsHashes[account]);
+
+    mapping (address => User) users;
+
+    function userFileCount() public view returns(uint count) {
+        return users[msg.sender].files.length;
+    }
+
+    function userFileAtIndex(uint index) public view 
+        returns(string file) {
+        // TODO Gracefully handle invalid index
+        return users[msg.sender].files[index];
+    }
+
+    function addFile(string file) public {
+        // TODO Prevent user from adding blank files
+        users[msg.sender].files.push(file);
     }
 }
