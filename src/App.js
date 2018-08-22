@@ -17,7 +17,7 @@ class App extends Component {
       fileWitnessInstance: null,
       account: null,
       fileCount: 0,
-      files: null,
+      files: [],
       buffer: null
     }
     this.captureFile = this.captureFile.bind(this);
@@ -53,12 +53,38 @@ class App extends Component {
         console.log('Contract deployed to ' + this.state.fileWitnessInstance.address)
         this.setState({ account: accounts[0] })
         console.log('Using account ' + this.state.account)
-      }).then((result) => {
-        return this.state.fileWitnessInstance.userFileCount.call()
-      }).then((result) => {
-        return this.setState({ fileCount: parseInt(result, 10) })
+      }).then(() => {
+        this.getFileCount()
       })
     })
+  }
+
+  getFileCount() {
+    this.state.fileWitnessInstance.userFileCount.call().then((result) => {
+      var currentCount = this.state.fileCount
+      var newCount = parseInt(result, 10)
+      this.setState({ fileCount: newCount })
+      if (currentCount !== newCount) {
+        this.getFiles()
+      }
+    })
+  }
+
+  getFiles() {
+    if (this.state.fileCount > 0) {
+      for (var i = 0; i < this.state.fileCount; i++) {
+        console.log("Getting file at index " + i)
+        this.state.fileWitnessInstance.userFileAtIndex.call(i.toString())
+        .then((result) => {
+          console.log("Got file: " + result)
+          this.setState({
+            files: this.state.files.concat({
+              hash: result
+            })
+          })
+        })
+      }
+    }
   }
 
   captureFile(event) {
@@ -99,9 +125,7 @@ class App extends Component {
 
     this.setState({ fileHash: hash })
     
-    instance.userFileCount.call().then((result) => {
-      this.setState({ fileCount: parseInt(result, 10) })
-    })
+    this.getFileCount()
   }
 
   render() {
@@ -114,12 +138,15 @@ class App extends Component {
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <p>Your files: {this.state.fileCount}</p>
               <h2>Upload Image</h2>
               <form onSubmit={this.onSubmit} >
                 <input type='file' onChange={this.captureFile} />
                 <input type='submit' />
               </form>
+              <h2>Your files: {this.state.fileCount}</h2>
+              {this.state.files.map((file, index) => (
+                <p key={index}>{file.hash}</p>
+              ))}
             </div>
           </div>
         </main>
