@@ -145,7 +145,10 @@ class App extends Component {
               </form>
               <h2>Your files: {this.state.fileCount}</h2>
               {this.state.files.map((file, index) => (
-                <p key={index}>{file.hash}</p>
+                <div key={index}>
+                  <p>{file.hash}</p>
+                  <img src={`https://ipfs.io/ipfs/${file.hash}`} alt=""/>
+                </div>
               ))}
             </div>
           </div>
