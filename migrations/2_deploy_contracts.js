@@ -1,5 +1,5 @@
-var FileWitness = artifacts.require("./FileWitness.sol");
+var PicWitness = artifacts.require("./PicWitness.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(FileWitness);
+  deployer.deploy(PicWitness);
 };

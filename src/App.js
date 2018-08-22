@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import FileWitnessContract from '../build/contracts/FileWitness.json'
+import PicWitnessContract from '../build/contracts/PicWitness.json'
 import getWeb3 from './utils/getWeb3'
 import ipfs from './utils/IPFS.js'
 
@@ -15,7 +15,7 @@ class App extends Component {
 
     this.state = {
       web3: null,
-      fileWitnessInstance: null,
+      picWitnessInstance: null,
       account: null,
       fileCount: 0,
       files: [],
@@ -45,13 +45,13 @@ class App extends Component {
 
   instantiateContract() {
     const contract = require('truffle-contract')
-    const fileWitness = contract(FileWitnessContract)
-    fileWitness.setProvider(this.state.web3.currentProvider)
+    const picWitness = contract(PicWitnessContract)
+    picWitness.setProvider(this.state.web3.currentProvider)
 
     this.state.web3.eth.getAccounts((error, accounts) => {
-      fileWitness.deployed().then((instance) => {
-        this.setState({ fileWitnessInstance: instance })
-        console.log('Contract deployed to ' + this.state.fileWitnessInstance.address)
+      picWitness.deployed().then((instance) => {
+        this.setState({ picWitnessInstance: instance })
+        console.log('Contract deployed to ' + this.state.picWitnessInstance.address)
         this.setState({ account: accounts[0] })
         console.log('Using account ' + this.state.account)
       }).then(() => {
@@ -61,7 +61,7 @@ class App extends Component {
   }
 
   getFileCount() {
-    this.state.fileWitnessInstance.userFileCount.call().then((result) => {
+    this.state.picWitnessInstance.userFileCount.call().then((result) => {
       var currentCount = this.state.fileCount
       var newCount = parseInt(result, 10)
       this.setState({ fileCount: newCount })
@@ -75,7 +75,7 @@ class App extends Component {
     if (this.state.fileCount > 0) {
       for (var i = 0; i < this.state.fileCount; i++) {
         console.log("Getting file at index " + i)
-        this.state.fileWitnessInstance.userFileAtIndex.call(i.toString())
+        this.state.picWitnessInstance.userFileAtIndex.call(i.toString())
         .then((result) => {
           console.log("Got file: " + result)
           this.setState({
@@ -105,7 +105,7 @@ class App extends Component {
 
     // TODO Figure out a way to eliminate these extra variables (can't access this.state from within file add)
     const buffer = this.state.buffer
-    const instance = this.state.fileWitnessInstance
+    const instance = this.state.picWitnessInstance
     const account = this.state.account
     const hash = ''
 
@@ -135,7 +135,7 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">File Witness</a>
+            <a href="#" className="pure-menu-heading pure-menu-link">PicWitness</a>
         </nav>
 
         <main className="container">

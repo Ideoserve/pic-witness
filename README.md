@@ -1,4 +1,4 @@
-# File Witness
+# PicWitness
 Proove ownership and existence of a file by uploading it to a decentralized storage network (IPFS) and storing the file hash in the Ethereum blockchain.
 
 ## Why should I use this?
@@ -18,7 +18,7 @@ npm install -g ganache-cli
 Clone this repository.
 
 ```
-git clone https://github.com/myutzy/file-witness.git
+git clone https://github.com/myutzy/pic-witness.git
 ```
 
 Compile the smart contracts.
