@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import PicWitnessContract from '../build/contracts/PicWitness.json'
 import getWeb3 from './utils/getWeb3'
-import ipfs from './utils/IPFS.js'
+import ipfs from './utils/IPFS'
+import moment from './utils/moment'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -17,11 +18,11 @@ class App extends Component {
       web3: null,
       picWitnessInstance: null,
       account: null,
-      fileCount: 0,
-      files: [],
+      pictureCount: 0,
+      pictures: [],
       buffer: null
     }
-    this.captureFile = this.captureFile.bind(this);
+    this.capturePicture = this.capturePicture.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
 
@@ -55,32 +56,37 @@ class App extends Component {
         this.setState({ account: accounts[0] })
         console.log('Using account ' + this.state.account)
       }).then(() => {
-        this.getFileCount()
+        this.getPictureCount()
       })
     })
   }
 
-  getFileCount() {
-    this.state.picWitnessInstance.userFileCount.call().then((result) => {
-      var currentCount = this.state.fileCount
+  getPictureCount() {
+    this.state.picWitnessInstance.getUserPictureCount.call().then((result) => {
+      var currentCount = this.state.pictureCount
       var newCount = parseInt(result, 10)
-      this.setState({ fileCount: newCount })
+      this.setState({ pictureCount: newCount })
       if (currentCount !== newCount) {
-        this.getFiles()
+        this.getPictures()
       }
     })
   }
 
-  getFiles() {
-    if (this.state.fileCount > 0) {
-      for (var i = 0; i < this.state.fileCount; i++) {
-        console.log("Getting file at index " + i)
-        this.state.picWitnessInstance.userFileAtIndex.call(i.toString())
-        .then((result) => {
-          console.log("Got file: " + result)
-          this.setState({
-            files: this.state.files.concat({
-              hash: result
+  getPictures() {
+    if (this.state.pictureCount > 0) {
+      for (var i = 0; i < this.state.pictureCount; i++) {
+        console.log("Getting picture by index " + i)
+        this.state.picWitnessInstance.getPictureHash.call(i.toString())
+        .then((pictureHash) => {
+          console.log("Got picture: " + pictureHash)
+          this.state.picWitnessInstance.getPictureDetails.call(pictureHash)
+          .then((pictureDetails) => {
+            this.setState({
+              pictures: this.state.pictures.concat({
+                hash: pictureHash,
+                description: pictureDetails[0],
+                timestamp: moment(pictureDetails[1]).format('LL')
+              })
             })
           })
         })
@@ -88,11 +94,11 @@ class App extends Component {
     }
   }
 
-  captureFile(event) {
+  capturePicture(event) {
     event.preventDefault()
-    const file = event.target.files[0]
+    const picture = event.target.files[0]
     const reader = new window.FileReader()
-    reader.readAsArrayBuffer(file)
+    reader.readAsArrayBuffer(picture)
     reader.onloadend = () => {
       this.setState({ buffer: Buffer(reader.result) })
       console.log('buffer', this.state.buffer)
@@ -107,7 +113,6 @@ class App extends Component {
     const buffer = this.state.buffer
     const instance = this.state.picWitnessInstance
     const account = this.state.account
-    const hash = ''
 
     ipfs.files.add(buffer, function (error, files) {
       if(error) {
@@ -117,16 +122,14 @@ class App extends Component {
 
       const hash = files[0].hash
 
-      console.log('File sent to IPFS. Hash: ' + hash)
+      console.log('Picture sent to IPFS. Hash: ' + hash)
       
-      instance.addFile(hash, { from: account }).then((r) => {
+      instance.addPicture(hash, { from: account }).then((r) => {
         console.log('ifpsHash', hash)
       })
     })
-
-    this.setState({ fileHash: hash })
     
-    this.getFileCount()
+    this.getPictureCount()
   }
 
   render() {
@@ -145,7 +148,7 @@ class App extends Component {
                 <div className="pure-u-1 pure-u-md-1-3">
                   <h2>Add a Picture</h2>
                   <form onSubmit={this.onSubmit} >
-                    <input type='file' onChange={this.captureFile} />
+                    <input type='file' onChange={this.capturePicture} />
                     <button type='submit' className="pure-button pure-button-primary"
                       disabled={!isSubmitEnabled}>
                       Go!
@@ -156,19 +159,21 @@ class App extends Component {
                 <h2>How this works</h2>
                   <p>Choose a picture to upload. Your picture will be timstampped
                     and submitted to a peer-to-peer filesharing network called InterPlanetary 
-                    File System (IPFS). After your file is stored using IPFS, a file hash 
+                    File System (IPFS). After your picture is stored using IPFS, a file hash 
                     provided by IPFS will be added to the Ethereum blockchain. This blockchain 
                     transaction provides cryptographically-guaranteed proof that you added
                     the picture at a certain date/time.
                   </p>
                 </div>
               </div>
-              <h2>Your pictures: {this.state.fileCount}</h2>
+              <h2>Your pictures: {this.state.pictureCount}</h2>
               <div className="pure-g">
-                {this.state.files.map((file, index) => (
+                {this.state.pictures.map((picture, index) => (
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
                     <div className="pure-grid-unit-p1">
-                      <img src={`https://ipfs.io/ipfs/${file.hash}`} alt="" className="pure-img"/>
+                      <span>Description: {picture.description}</span><br />
+                      <span>Timestamp: {picture.timestamp}</span>
+                      <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="pure-img"/>
                     </div>
                   </div>
                 ))}
