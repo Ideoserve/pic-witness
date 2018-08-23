@@ -192,7 +192,9 @@ class App extends Component {
                 {this.state.pictures.map((picture, index) => (
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
                     <div className="card pure-grid-unit-p1">
-                      <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="card-img-top"/>
+                      <a href={`https://ipfs.io/ipfs/${picture.hash}`} alt="" target="_blank">
+                        <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="card-img-top"/>
+                      </a>
                       <div className="card-body">
                         <div className="card-text">
                           <div>
