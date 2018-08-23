@@ -189,19 +189,16 @@ class App extends Component {
                 {this.state.pictures.map((picture, index) => (
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
                     <div className="pure-grid-unit-p1">
-                      <span>Description: {picture.description}</span><br />
+                      <span>{picture.description}</span><br />
                       <form>
-                        <label>
-                          Description:
-                          <input type="text" name="currentPictureDescription" 
-                            onChange={this.onInputChanged} />
-                        </label>
+                        <input type="text" name="currentPictureDescription" 
+                          onChange={this.onInputChanged} placeholder="Description" />
                         <button onClick={this.onAddDescription} id={picture.hash}
-                          className="pure-button pure-button-secondary">
+                          className="pure-button button-success button-small">
                           Save
                         </button>
                       </form>
-                      <span>Timestamp: {picture.timestamp}</span>
+                      <span className="smaller-muted">Added on {picture.timestamp}</span>
                       <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="pure-img"/>
                     </div>
                   </div>
