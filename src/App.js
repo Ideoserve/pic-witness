@@ -8,6 +8,7 @@ import './css/oswald.css'
 import './css/open-sans.css'
 import './css/pure-min.css'
 import './css/grids-responsive-min.css'
+import './css/bootstrap.min.css'
 import './App.css'
 
 class App extends Component {
@@ -155,57 +156,64 @@ class App extends Component {
     const isAddPictureEnabled = buffer !== null
     return (
       <div className="App">
-        <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">PicWitness</a>
-        </nav>
+        <div className="navbar navbar-dark bg-dark box-shadow">
+          <div className="container d-flex justify-content-between">
+            <a href="#" className="navbar-brand d-flex align-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="mr-2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+              <strong>PicWitness</strong>
+            </a>
+          </div>
+        </div>
 
         <main className="container">
-          <div className="pure-g">
-            <div className="pure-u-1-1">
-              <div className="pure-g">
-                <div className="pure-u-1 pure-u-md-1-3">
-                  <h2>Add a Picture</h2>
-                  <form onSubmit={this.onAddPicture} >
-                    <input type='file' onChange={this.onGetPictureToAdd} />
-                    <button type='submit' className="pure-button pure-button-primary"
-                      disabled={!isAddPictureEnabled}>
-                      Go!
-                    </button>
-                  </form>
-                </div>
-                <div className="pure-u-1 pure-u-md-2-3">
-                <h2>How this works</h2>
-                  <p>Choose a picture to upload. Your picture will be timstampped
-                    and submitted to a peer-to-peer filesharing network called InterPlanetary 
-                    File System (IPFS). After your picture is stored using IPFS, a file hash 
-                    provided by IPFS will be added to the Ethereum blockchain. This blockchain 
-                    transaction provides cryptographically-guaranteed proof that you added
-                    the picture at a certain date/time.
-                  </p>
-                </div>
-              </div>
-              <h2>Your pictures: {this.state.pictureCount}</h2>
-              <div className="pure-g">
+          <section className="jumbotron text-center">
+            <div className="container">
+              <p className="lead text-muted">
+                Choose a picture to upload. Your picture will be timestampped
+                and submitted to a peer-to-peer filesharing network called InterPlanetary 
+                File System (IPFS). After your picture is stored using IPFS, a file hash 
+                provided by IPFS will be added to the Ethereum blockchain. This blockchain 
+                transaction provides cryptographically-guaranteed proof that you added
+                the picture at a certain date/time.
+              </p>
+              <h1 className="jumbotron-heading">Add a Picture</h1>
+              <form onSubmit={this.onAddPicture} >
+                <input type='file' onChange={this.onGetPictureToAdd} />
+                <button type='submit' className="btn btn-primary"
+                  disabled={!isAddPictureEnabled}>
+                  Go!
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <section>
+            <div className="container">
                 {this.state.pictures.map((picture, index) => (
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
-                    <div className="pure-grid-unit-p1">
-                      <span>{picture.description}</span><br />
-                      <form>
-                        <input type="text" name="currentPictureDescription" 
-                          onChange={this.onInputChanged} placeholder="Description" />
-                        <button onClick={this.onAddDescription} id={picture.hash}
-                          className="pure-button button-success button-small">
-                          Save
-                        </button>
-                      </form>
-                      <span className="smaller-muted">Added on {picture.timestamp}</span>
-                      <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="pure-img"/>
+                    <div className="card pure-grid-unit-p1">
+                      <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="card-img-top"/>
+                      <div className="card-body">
+                        <div className="card-text">
+                          <span className="badge badge-info">{picture.description}</span><br />
+                          <form>
+                            <input type="text" name="currentPictureDescription" 
+                              onChange={this.onInputChanged} placeholder="Description" />
+                            <button onClick={this.onAddDescription} id={picture.hash}
+                              className="pure-button button-success button-small">
+                              Save
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                      <div className="card-footer">
+                        <small className="text-muted">Added on {picture.timestamp}</small>
+                      </div>
                     </div>
                   </div>
                 ))}
-              </div>
             </div>
-          </div>
+          </section>
         </main>
       </div>
     );
