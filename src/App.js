@@ -20,10 +20,13 @@ class App extends Component {
       account: null,
       pictureCount: 0,
       pictures: [],
-      buffer: null
+      buffer: null,
+      currentPictureDescription: ''
     }
-    this.capturePicture = this.capturePicture.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
+    this.onGetPictureToAdd = this.onGetPictureToAdd.bind(this);
+    this.onAddDescription = this.onAddDescription.bind(this);
+    this.onAddPicture = this.onAddPicture.bind(this);
+    this.onInputChanged = this.onInputChanged.bind(this);
   }
 
   componentWillMount() {
@@ -94,7 +97,7 @@ class App extends Component {
     }
   }
 
-  capturePicture(event) {
+  onGetPictureToAdd(event) {
     event.preventDefault()
     const picture = event.target.files[0]
     const reader = new window.FileReader()
@@ -105,7 +108,7 @@ class App extends Component {
     }
   }
 
-  onSubmit(event) {
+  onAddPicture(event) {
     event.preventDefault()
     console.log('Submitting...')
 
@@ -132,9 +135,24 @@ class App extends Component {
     this.getPictureCount()
   }
 
+  onAddDescription(event) {
+    event.preventDefault()
+    this.state.picWitnessInstance.addPictureDescription(
+      event.target.id,
+      this.state.currentPictureDescription,
+      { from: this.state.account })
+    .then(() => {
+      this.getPictureCount()
+    })
+  }
+
+  onInputChanged(event) {
+    this.setState({ [event.target.name]: event.target.value })
+  }
+
   render() {
     const { buffer } = this.state;
-    const isSubmitEnabled = buffer !== null
+    const isAddPictureEnabled = buffer !== null
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
@@ -147,10 +165,10 @@ class App extends Component {
               <div className="pure-g">
                 <div className="pure-u-1 pure-u-md-1-3">
                   <h2>Add a Picture</h2>
-                  <form onSubmit={this.onSubmit} >
-                    <input type='file' onChange={this.capturePicture} />
+                  <form onSubmit={this.onAddPicture} >
+                    <input type='file' onChange={this.onGetPictureToAdd} />
                     <button type='submit' className="pure-button pure-button-primary"
-                      disabled={!isSubmitEnabled}>
+                      disabled={!isAddPictureEnabled}>
                       Go!
                     </button>
                   </form>
@@ -172,6 +190,17 @@ class App extends Component {
                   <div className="pure-u-1 pure-u-lg-1-3 pure-u-xl-1-4" key={index}>
                     <div className="pure-grid-unit-p1">
                       <span>Description: {picture.description}</span><br />
+                      <form>
+                        <label>
+                          Description:
+                          <input type="text" name="currentPictureDescription" 
+                            onChange={this.onInputChanged} />
+                        </label>
+                        <button onClick={this.onAddDescription} id={picture.hash}
+                          className="pure-button pure-button-secondary">
+                          Save
+                        </button>
+                      </form>
                       <span>Timestamp: {picture.timestamp}</span>
                       <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="pure-img"/>
                     </div>
