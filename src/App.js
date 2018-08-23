@@ -195,12 +195,20 @@ class App extends Component {
                       <img src={`https://ipfs.io/ipfs/${picture.hash}`} alt="" className="card-img-top"/>
                       <div className="card-body">
                         <div className="card-text">
-                          <span className="badge badge-info">{picture.description}</span><br />
-                          <form>
-                            <input type="text" name="currentPictureDescription" 
-                              onChange={this.onInputChanged} placeholder="Description" />
+                          <div>
+                          {picture.description.length > 0 ? (
+                            <p>{picture.description}</p>
+                          ) : null
+                          }
+                          </div>
+                          
+                          <form className="form-inline">
+                            <div className="form-group">
+                              <textarea type="text" name="currentPictureDescription" className="form-control"
+                                onChange={this.onInputChanged} placeholder="Description" rows="3" />
+                            </div>
                             <button onClick={this.onAddDescription} id={picture.hash}
-                              className="pure-button button-success button-small">
+                              className="btn btn-success btn-sm mt-2">
                               Save
                             </button>
                           </form>
