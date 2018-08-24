@@ -1,8 +1,10 @@
 pragma solidity ^0.4.24;
 
+import "./Pausable.sol";
+
 /// @title PicWitness
-contract PicWitness {
-    
+contract PicWitness is Pausable {
+
     // Contains details about a single picture.
     struct Picture {
         address owner;
@@ -21,8 +23,6 @@ contract PicWitness {
     // Stores a 'User' struct for each known address.
     mapping (address => User) users;
 
-    /// Validate ownership of the requested picture hash 
-    /// before continuing.
     modifier onlyPictureOwner(string pictureHash) {
         require(
             pictures[pictureHash].owner == msg.sender,
@@ -33,7 +33,10 @@ contract PicWitness {
 
     /// Add a picture hash to the current user's picture hash array.
     /// Add picture details by setting the owner and timestamp.
-    function addPicture(string pictureHash) public {
+    function addPicture(string pictureHash) 
+        public
+        whenNotPaused
+    {
         // TODO Prevent user from adding blank pictureHash
         // TODO Prevent user from adding duplicate pictureHash
         users[msg.sender].pictureHashes.push(pictureHash);
@@ -45,6 +48,7 @@ contract PicWitness {
     /// Add a description to a picture. 
     function addPictureDescription(string pictureHash, string description) 
         public
+        whenNotPaused
         onlyPictureOwner(pictureHash)
     {
         pictures[pictureHash].description = description;
@@ -83,7 +87,7 @@ contract PicWitness {
     function verifyPictureOwner(address owner, string pictureHash) 
         public 
         view
-        returns(bool) 
+        returns(bool ) 
     {
         if (pictures[pictureHash].owner == owner) {
             return true;
