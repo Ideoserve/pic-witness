@@ -4,6 +4,9 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/PicWitness.sol";
 
+/// These unit tests ensure that picture-related operations
+/// in the PicWitness smart contract function correctly.
+/// The tests cover all general picture operations.
 contract TestPicWitness {
 
     PicWitness instance;
