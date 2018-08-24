@@ -87,12 +87,8 @@ contract PicWitness is Pausable {
     function verifyPictureOwner(address owner, string pictureHash) 
         public 
         view
-        returns(bool ) 
+        returns(bool) 
     {
-        if (pictures[pictureHash].owner == owner) {
-            return true;
-        }
-        
-        return false;
+        return (pictures[pictureHash].owner == owner);
     }
 }
