@@ -29,16 +29,22 @@ Compile the smart contracts.
 truffle compile
 ```
 
+Switch to a different terminal and start an Ethereum development blockchain using Ganache-CLI.
+
+```
+ganache-cli
+```
+
 Migrate the smart contracts.
 
 ```
 truffle migrate
 ```
 
-Switch to a different terminal and start an Ethereum development blockchain using Ganache-CLI.
+Run unit tests.
 
 ```
-ganache-cli
+truffle test
 ```
 
 Start the application in development mode and serve the frontend at http://localhost:3000
