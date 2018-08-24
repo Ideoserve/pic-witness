@@ -6,26 +6,23 @@ import "../contracts/PicWitness.sol";
 
 contract TestPicWitness {
 
-    PicWitness picWitness = PicWitness(DeployedAddresses.PicWitness());
+    PicWitness instance;
+    string pictureHash;
+
+    function beforeEach() public {
+        instance = new PicWitness();
+
+        pictureHash = "testPictureHash";
+
+        instance.addPicture(pictureHash);
+    }
 
     function testUserCanAddPicture() public {
-        PicWitness instance = new PicWitness();
-
-        string memory expected = "testPictureHash";
-
-        instance.addPicture(expected);
-
-        Assert.equal(instance.getPictureHash(0), expected,
+        Assert.equal(instance.getPictureHash(0), pictureHash,
         "User should be able to add picture.");
     }
 
     function testUserCanAddPictureDescription() public {
-        PicWitness instance = new PicWitness();
-
-        string memory pictureHash = "testPictureHash";
-
-        instance.addPicture(pictureHash);
-
         string memory expected = "testPictureDescription";
 
         instance.addPictureDescription(pictureHash, expected);
@@ -37,23 +34,11 @@ contract TestPicWitness {
     }
 
     function testUserCanGetPictureCount() public {
-        PicWitness instance = new PicWitness();
-
-        string memory pictureHash = "testPictureHash";
-
-        instance.addPicture(pictureHash);
-
         Assert.equal(instance.getUserPictureCount(), 1,
         "User should be able to get their total number of pictures.");
     }
 
     function testUserCanGetPictureDescription() public {
-        PicWitness instance = new PicWitness();
-
-        string memory pictureHash = "testPictureHash";
-
-        instance.addPicture(pictureHash);
-        
         string memory expected = "testPictureDescription";
 
         instance.addPictureDescription(pictureHash, expected);
@@ -65,12 +50,6 @@ contract TestPicWitness {
     }
 
     function testUserCanGetPictureHash() public {
-        PicWitness instance = new PicWitness();
-
-        string memory pictureHash = "testPictureHash";
-
-        instance.addPicture(pictureHash);
-
         Assert.equal(instance.getPictureHash(0), pictureHash,
         "User should be able to get the picture hash.");
     }
