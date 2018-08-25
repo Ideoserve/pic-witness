@@ -23,6 +23,12 @@ Clone this repository.
 git clone https://github.com/myutzy/pic-witness.git
 ```
 
+Install dependencies.
+
+```
+npm install
+```
+
 Compile the smart contracts.
 
 ```
