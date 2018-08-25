@@ -1,7 +1,7 @@
 # PicWitness
 Proove ownership and existence of a file by uploading it to a decentralized storage network (IPFS) and storing the file hash in the Ethereum blockchain.
 
-![image](https://user-images.githubusercontent.com/1199572/44492369-373b2a00-a632-11e8-8e71-8d6668ff06a9.png)
+![pic-witness-demo](https://user-images.githubusercontent.com/1199572/44621350-d2224700-a872-11e8-9fe4-901d220a12d2.gif)
 
 ## Why should I use this?
 File storage services like Dropbox and Google Drive require you to trust a corporate entity with ownership of your data. File Witness is a decentralized alternative that is distributed using InterPlanetary File System (IPFS), a peer-to-peer network, and notarized using the Ethereum public blockchain. This provides the following benefits:
