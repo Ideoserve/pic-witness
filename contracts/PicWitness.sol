@@ -46,11 +46,8 @@ contract PicWitness is Pausable {
         notEmptyString(pictureHash)
         whenNotPaused
     {
-        // TODO Prevent user from adding blank pictureHash
-        // TODO Prevent user from adding duplicate pictureHash
         users[msg.sender].pictureHashes.push(pictureHash);
         pictures[pictureHash].owner = msg.sender;
-        // TODO Get timestamp a better way
         pictures[pictureHash].timestamp = now;
     }
     
