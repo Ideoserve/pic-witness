@@ -69,7 +69,7 @@ class App extends Component {
     this.state.web3.eth.getAccounts((error, accounts) => {
       picWitness.deployed().then((instance) => {
         this.setState({ picWitnessInstance: instance })
-        this.setState({ account: accounts[0] })
+        this.setState({ account: this.state.web3.eth.accounts[0] })
         console.log('Contract deployed to ' + this.state.picWitnessInstance.address)
         console.log('Using account ' + this.state.account)
       }).then(() => {
@@ -95,9 +95,11 @@ class App extends Component {
   }
 
   getPictureCount() {
-    this.state.picWitnessInstance.getUserPictureCount.call().then((result) => {
+    console.log('Getting picture count for account ' + this.state.account)
+    this.state.picWitnessInstance.getUserPictureCount.call({from: this.state.account}).then((result) => {
       var currentCount = this.state.pictureCount
       var newCount = parseInt(result, 10)
+      console.log('Picture count: ' + newCount)
       this.setState({ pictureCount: newCount })
       if (currentCount !== newCount) {
         this.getPictures()
@@ -109,10 +111,10 @@ class App extends Component {
     if (this.state.pictureCount > 0) {
       for (var i = 0; i < this.state.pictureCount; i++) {
         console.log("Getting picture by index " + i)
-        this.state.picWitnessInstance.getPictureHash.call(i.toString())
+        this.state.picWitnessInstance.getPictureHash.call(i.toString(), {from: this.state.account})
         .then((pictureHash) => {
           console.log("Got picture: " + pictureHash)
-          this.state.picWitnessInstance.getPictureDetails.call(pictureHash)
+          this.state.picWitnessInstance.getPictureDetails.call(pictureHash, {from: this.state.account})
           .then((pictureDetails) => {
             this.setState({
               pictures: this.state.pictures.concat({
