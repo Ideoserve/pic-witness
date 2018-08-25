@@ -45,7 +45,20 @@ class App extends Component {
       this.instantiateContract()
     })
     .catch(() => {
-      console.log('Error finding web3.')
+      const status = 'Wallet provider was not found. Please try again.'
+      console.log(status)
+      this.setState({
+        notifications: this.state.notifications.add({
+          message: status,
+          key: 'MNF',
+          action: 'Dismiss',
+          dismissAfter: 5000,
+          onClick: (notification, deactivate) => {
+            deactivate();
+            this.removeNotification('MNF');
+          },
+        })
+      });
     })
   }
 
@@ -61,6 +74,22 @@ class App extends Component {
         console.log('Using account ' + this.state.account)
       }).then(() => {
         this.getPictureCount()
+      })
+      .catch(() => {
+        const status = 'Error deploying contract. Please verify selected chain in your wallet provider.'
+        console.log(status)
+        this.setState({
+          notifications: this.state.notifications.add({
+            message: status,
+            key: 'EDC',
+            action: 'Dismiss',
+            dismissAfter: 5000,
+            onClick: (notification, deactivate) => {
+              deactivate();
+              this.removeNotification('EDC');
+            },
+          })
+        });
       })
     })
   }
