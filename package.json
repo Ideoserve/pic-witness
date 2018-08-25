@@ -50,10 +50,12 @@
   },
   "dependencies": {
     "dotenv": "^2.0.0",
+    "immutable": "^3.8.2",
     "ipfs-api": "^24.0.1",
     "moment": "^2.22.2",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react-dom": "^15.4.2",
+    "react-notification": "^6.8.4"
   },
   "scripts": {
     "start": "node scripts/start.js",

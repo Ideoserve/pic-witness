@@ -1,4 +1,6 @@
 import React, { Component } from 'react'
+import { NotificationStack } from 'react-notification';
+import { OrderedSet } from 'immutable';
 import PicWitnessContract from '../build/contracts/PicWitness.json'
 import getWeb3 from './utils/getWeb3'
 import ipfs from './utils/IPFS'
@@ -14,7 +16,6 @@ import './App.css'
 class App extends Component {
   constructor(props) {
     super(props)
-
     this.state = {
       web3: null,
       picWitnessInstance: null,
@@ -22,7 +23,8 @@ class App extends Component {
       pictureCount: 0,
       pictures: [],
       buffer: null,
-      currentPictureDescription: ''
+      currentPictureDescription: '',
+      notifications: OrderedSet()
     }
     this.onGetPictureToAdd = this.onGetPictureToAdd.bind(this);
     this.onAddDescription = this.onAddDescription.bind(this);
@@ -39,7 +41,6 @@ class App extends Component {
       this.setState({
         web3: results.web3
       })
-
       // Instantiate contract once web3 provided.
       this.instantiateContract()
     })
@@ -52,12 +53,11 @@ class App extends Component {
     const contract = require('truffle-contract')
     const picWitness = contract(PicWitnessContract)
     picWitness.setProvider(this.state.web3.currentProvider)
-
     this.state.web3.eth.getAccounts((error, accounts) => {
       picWitness.deployed().then((instance) => {
         this.setState({ picWitnessInstance: instance })
-        console.log('Contract deployed to ' + this.state.picWitnessInstance.address)
         this.setState({ account: accounts[0] })
+        console.log('Contract deployed to ' + this.state.picWitnessInstance.address)
         console.log('Using account ' + this.state.account)
       }).then(() => {
         this.getPictureCount()
@@ -111,39 +111,99 @@ class App extends Component {
 
   onAddPicture(event) {
     event.preventDefault()
-    console.log('Submitting...')
-
-    // TODO Figure out a way to eliminate these extra variables (can't access this.state from within file add)
+    const status = 'Uploading picture to IPFS - please wait...'
+    console.log(status)
+    this.setState({
+      notifications: this.state.notifications.add({
+        message: status,
+        key: 'UPIPFS',
+        action: 'Dismiss',
+        dismissAfter: 5000,
+        onClick: (notification, deactivate) => {
+          deactivate();
+          this.removeNotification('UPIPFS');
+        },
+      })
+    });
     const buffer = this.state.buffer
     const instance = this.state.picWitnessInstance
     const account = this.state.account
-
+    const nofications = this.state.notifications
+    var context = this;
     ipfs.files.add(buffer, function (error, files) {
       if(error) {
         console.log(error)
         return
       }
-
       const hash = files[0].hash
-
-      console.log('Picture sent to IPFS. Hash: ' + hash)
-      
+      const status = 'Saving picture hash ' + hash + ' to blockchain - please wait...'
+      console.log(status)
+      context.setState({
+        notifications: nofications.add({
+          message: status,
+          key: 'SPHTB',
+          action: 'Dismiss',
+          dismissAfter: 5000,
+          onClick: (notification, deactivate) => {
+            deactivate();
+            this.removeNotification('SPHTB');
+          },
+        })
+      });
       instance.addPicture(hash, { from: account }).then((r) => {
         console.log('ifpsHash', hash)
+      }).then(() => {
+        context.getPictureCount()
+        context.setState({
+          notifications: nofications.add({
+            message: 'Picture added. Refresh page after transaction is confirmed.',
+            key: 'PARP',
+            action: 'Dismiss',
+            dismissAfter: 5000,
+            onClick: (notification, deactivate) => {
+              deactivate();
+              this.removeNotification('PARP');
+            },
+          })
+        });
       })
     })
-    
-    this.getPictureCount()
   }
 
   onAddDescription(event) {
     event.preventDefault()
+    const status = 'Saving picture description to blockchain - please wait...'
+    console.log(status)
+    this.setState({
+      notifications: this.state.notifications.add({
+        message: status,
+        key: 'SPDTB',
+        action: 'Dismiss',
+        dismissAfter: 5000,
+        onClick: (notification, deactivate) => {
+          deactivate();
+          this.removeNotification('SPDTB');
+        },
+      })
+    });
     this.state.picWitnessInstance.addPictureDescription(
       event.target.id,
       this.state.currentPictureDescription,
       { from: this.state.account })
     .then(() => {
       this.getPictureCount()
+      this.setState({
+        notifications: this.state.notifications.add({
+          message: 'Picture description added. Refresh page after transaction is confirmed.',
+          key: 'PDARP',
+          action: 'Dismiss',
+          dismissAfter: 5000,
+          onClick: (notification, deactivate) => {
+            deactivate();
+            this.removeNotification('PDARP');
+          },
+        })
+      });
     })
   }
 
@@ -151,11 +211,23 @@ class App extends Component {
     this.setState({ [event.target.name]: event.target.value })
   }
 
+  removeNotification (count) {
+    this.setState({
+      notifications: this.state.notifications.filter(n => n.key !== count)
+    })
+  }
+
   render() {
     const { buffer } = this.state;
     const isAddPictureEnabled = buffer !== null
     return (
       <div className="App">
+        <NotificationStack
+          notifications={this.state.notifications.toArray()}
+          onDismiss={notification => this.setState({
+            notifications: this.state.notifications.delete(notification)
+          })}
+        />
         <div className="navbar navbar-dark bg-dark box-shadow">
           <div className="container d-flex justify-content-between">
             <a href="#" className="navbar-brand d-flex align-items-center">
