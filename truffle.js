@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({silent: true});
 var HDWalletProvider = require("truffle-hdwallet-provider");
 
 var mnemonic = process.env["RINKEBY_PRIVATE_KEY"]
