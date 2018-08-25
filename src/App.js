@@ -108,6 +108,7 @@ class App extends Component {
   }
 
   getPictures() {
+    this.setState({ pictures: [] })
     if (this.state.pictureCount > 0) {
       for (var i = 0; i < this.state.pictureCount; i++) {
         console.log("Getting picture by index " + i)
