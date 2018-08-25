@@ -23,6 +23,14 @@ contract PicWitness is Pausable {
     // Stores a 'User' struct for each known address.
     mapping (address => User) users;
 
+    modifier notEmptyString(string input) {
+        require(
+            bytes(input).length > 0,
+            "String cannot be empty."
+        );
+        _;
+    }
+
     modifier onlyPictureOwner(string pictureHash) {
         require(
             pictures[pictureHash].owner == msg.sender,
@@ -35,6 +43,7 @@ contract PicWitness is Pausable {
     /// Add picture details by setting the owner and timestamp.
     function addPicture(string pictureHash) 
         public
+        notEmptyString(pictureHash)
         whenNotPaused
     {
         // TODO Prevent user from adding blank pictureHash
@@ -48,6 +57,8 @@ contract PicWitness is Pausable {
     /// Add a description to a picture. 
     function addPictureDescription(string pictureHash, string description) 
         public
+        notEmptyString(pictureHash)
+        notEmptyString(description)
         whenNotPaused
         onlyPictureOwner(pictureHash)
     {
@@ -65,8 +76,9 @@ contract PicWitness is Pausable {
 
     /// Get the details for a picture.
     function getPictureDetails(string pictureHash) 
-        public 
-        view 
+        public
+        view
+        notEmptyString(pictureHash)
         onlyPictureOwner(pictureHash)
         returns(string description, uint timestamp) 
     {
@@ -79,7 +91,10 @@ contract PicWitness is Pausable {
         view 
         returns(string pictureHash) 
     {
-        // TODO Gracefully handle invalid index
+        require(
+            users[msg.sender].pictureHashes.length > index, 
+            "Invalid picture index provided."
+        );
         return users[msg.sender].pictureHashes[index];
     }
 
@@ -87,6 +102,7 @@ contract PicWitness is Pausable {
     function verifyPictureOwner(address owner, string pictureHash) 
         public 
         view
+        notEmptyString(pictureHash)
         returns(bool) 
     {
         return (pictures[pictureHash].owner == owner);
