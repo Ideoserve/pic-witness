@@ -36,8 +36,6 @@ class App extends Component {
 
   componentWillMount() {
     // Get network provider and web3 instance.
-    // See utils/getWeb3 for more info.
-
     getWeb3
     .then(results => {
       this.setState({
@@ -70,11 +68,13 @@ class App extends Component {
     picWitness.setProvider(this.state.web3.currentProvider)
     this.state.web3.eth.getAccounts((error, accounts) => {
       picWitness.deployed().then((instance) => {
+        // Contract deployed successfully. Update state.
         this.setState({ picWitnessInstance: instance })
         this.setState({ account: this.state.web3.eth.accounts[0] })
         console.log('Contract deployed to ' + this.state.picWitnessInstance.address)
         console.log('Using account ' + this.state.account)
       }).then(() => {
+        // Get the current user's pictures.
         this.getPictureCount()
       })
       .catch(() => {
@@ -98,6 +98,7 @@ class App extends Component {
 
   getPictureCount() {
     console.log('Getting picture count for account ' + this.state.account)
+    // Get the current user's picture count.
     this.state.picWitnessInstance.getUserPictureCount.call({from: this.state.account}).then((result) => {
       var count = parseInt(result, 10)
       console.log('Picture count: ' + count)
@@ -109,6 +110,7 @@ class App extends Component {
   getPictures() {
     this.setState({ pictures: [] })
     if (this.state.pictureCount > 0) {
+      // Iterate through the picture count and get picture details for each iteration.
       for (var i = 0; i < this.state.pictureCount; i++) {
         console.log("Getting picture by index " + i)
         this.state.picWitnessInstance.getPictureHash.call(i.toString(), {from: this.state.account})
@@ -133,6 +135,7 @@ class App extends Component {
     event.preventDefault()
     const picture = event.target.files[0]
     const reader = new window.FileReader()
+    // Get binary data from the uploaded picture.
     reader.readAsArrayBuffer(picture)
     reader.onloadend = () => {
       this.setState({ buffer: Buffer(reader.result) })
@@ -162,6 +165,7 @@ class App extends Component {
     const account = this.state.account
     const nofications = this.state.notifications
     var context = this;
+    // Send the picture to IPFS for storage.
     ipfs.files.add(buffer, function (error, files) {
       if(error) {
         console.log(error)
@@ -183,6 +187,7 @@ class App extends Component {
           },
         })
       });
+      // Add the IPFS file hash to the user's picture list
       instance.addPicture(hash, { from: account }).then((r) => {
         console.log('ifpsHash', hash)
       }).then(() => {
@@ -221,6 +226,7 @@ class App extends Component {
         },
       })
     });
+    // Add the description to the selected picture
     this.state.picWitnessInstance.addPictureDescription(
       event.target.id,
       this.state.currentPictureDescription,
