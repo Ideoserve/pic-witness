@@ -1,0 +1,8 @@
+PicWitness (Primary Contract)
+0x35b50f89716c08b6b6e33b3909ec20d0a1616138
+
+Pausable
+0x7d6e1ec5211c1459059f3ce613ad45a01eed3e2f
+
+Ownable
+0xa48641608ae6c437e08554a76cc19f3371b620d4
