@@ -49,6 +49,7 @@
     "whatwg-fetch": "1.0.0"
   },
   "dependencies": {
+    "growl": "^1.10.5",
     "immutable": "^3.8.2",
     "ipfs-api": "^24.0.1",
     "moment": "^2.22.2",
