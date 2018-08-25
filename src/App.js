@@ -24,7 +24,9 @@ class App extends Component {
       pictures: [],
       buffer: null,
       currentPictureDescription: '',
-      notifications: OrderedSet()
+      notifications: OrderedSet(),
+      addDescriptionDisabled: false,
+      addPictureDisabled: false
     }
     this.onGetPictureToAdd = this.onGetPictureToAdd.bind(this);
     this.onAddDescription = this.onAddDescription.bind(this);
@@ -97,13 +99,10 @@ class App extends Component {
   getPictureCount() {
     console.log('Getting picture count for account ' + this.state.account)
     this.state.picWitnessInstance.getUserPictureCount.call({from: this.state.account}).then((result) => {
-      var currentCount = this.state.pictureCount
-      var newCount = parseInt(result, 10)
-      console.log('Picture count: ' + newCount)
-      this.setState({ pictureCount: newCount })
-      if (currentCount !== newCount) {
-        this.getPictures()
-      }
+      var count = parseInt(result, 10)
+      console.log('Picture count: ' + count)
+      this.setState({ pictureCount: count })
+      this.getPictures()
     })
   }
 
@@ -143,6 +142,7 @@ class App extends Component {
 
   onAddPicture(event) {
     event.preventDefault()
+    this.setState({addPictureDisabled: true})
     const status = 'Uploading picture to IPFS - please wait...'
     console.log(status)
     this.setState({
@@ -165,6 +165,7 @@ class App extends Component {
     ipfs.files.add(buffer, function (error, files) {
       if(error) {
         console.log(error)
+        this.setState({addPictureDisabled: false})
         return
       }
       const hash = files[0].hash
@@ -185,10 +186,11 @@ class App extends Component {
       instance.addPicture(hash, { from: account }).then((r) => {
         console.log('ifpsHash', hash)
       }).then(() => {
+        context.setState({addPictureDisabled: false})
         context.getPictureCount()
         context.setState({
           notifications: nofications.add({
-            message: 'Picture added. Refresh page after transaction is confirmed.',
+            message: 'Picture added.',
             key: 'PARP',
             action: 'Dismiss',
             dismissAfter: 5000,
@@ -204,6 +206,7 @@ class App extends Component {
 
   onAddDescription(event) {
     event.preventDefault()
+    this.setState({addDescriptionDisabled: true})
     const status = 'Saving picture description to blockchain - please wait...'
     console.log(status)
     this.setState({
@@ -223,6 +226,7 @@ class App extends Component {
       this.state.currentPictureDescription,
       { from: this.state.account })
     .then(() => {
+      this.setState({addDescriptionDisabled: false})
       this.getPictureCount()
       this.setState({
         notifications: this.state.notifications.add({
@@ -250,8 +254,6 @@ class App extends Component {
   }
 
   render() {
-    const { buffer } = this.state;
-    const isAddPictureEnabled = buffer !== null
     return (
       <div className="App">
         <NotificationStack
@@ -287,7 +289,7 @@ class App extends Component {
               <form onSubmit={this.onAddPicture} >
                 <input type='file' onChange={this.onGetPictureToAdd} />
                 <button type='submit' className="btn btn-primary"
-                  disabled={!isAddPictureEnabled}>
+                  disabled={this.state.buffer == null || this.state.addPictureDisabled }>
                   Go!
                 </button>
               </form>
@@ -317,7 +319,7 @@ class App extends Component {
                                 onChange={this.onInputChanged} placeholder="Description" rows="3" />
                             </div>
                             <button onClick={this.onAddDescription} id={picture.hash}
-                              className="btn btn-success btn-sm mt-2">
+                              disabled={this.state.addDescriptionDisabled} className="btn btn-success btn-sm mt-2">
                               Save
                             </button>
                           </form>
